@@ -2,14 +2,13 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]    # tai master, jos käytät sitä
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -22,10 +21,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_MML_API_KEY: ${{ secrets.VITE_MML_API_KEY }}   # ← jos avain on salaisuus
+          VITE_MML_API_KEY: ${{ secrets.VITE_MML_API_KEY }}
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          folder: dist
-          branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
