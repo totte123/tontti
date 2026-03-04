@@ -200,8 +200,17 @@ function App() {
         }
       }
     } catch (err) {
-      console.error('Fetch- tai JSON-virhe:', err);
-      alert('Haku epäonnistui – katso konsoli');
+      console.error('Fetch-virhe:', err);
+    
+      let msg = 'Haku epäonnistui';
+      if (err.status === 400) {
+        msg = 'MML-palvelin hylkäsi pyynnön (400) – tarkista tunnus tai avain proxyllä';
+      } else if (err.status === 404) {
+        msg = 'Kiinteistöä ei löytynyt avoimesta aineistosta (404)';
+      } else if (err.status === 500) {
+        msg = 'Proxy-virhe Vercelissä – tarkista avain tai proxy-koodi';
+      }
+      alert(msg);
     }
   };
 

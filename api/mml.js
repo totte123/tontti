@@ -1,22 +1,22 @@
 export default async function handler(req, res) {
-    // Varmista avain (käytä nimeä, joka on Vercelissä Environment Variables -osiossa)
+    // Ota avain Vercelin env-varista
     const apiKey = process.env.VITE_MML_API_KEY;
   
     if (!apiKey) {
-      console.error('API key missing in Vercel env vars');
-      return res.status(500).json({ error: 'API key missing in Vercel' });
+      console.error('Vercel env: VITE_MML_API_KEY puuttuu');
+      return res.status(500).json({ error: 'API key missing in Vercel env' });
     }
   
-    // Debug-loki: tulosta avaimen alku (näkyy Vercelin Logs-välilehdellä)
-    console.log('Proxy: käytetty avain (ensimmäiset 8 merkkiä):', apiKey.substring(0, 8));
+    // Debug: tulosta avain logiin (näkyy Vercelin Logs-välilehdellä)
+    console.log('Proxy: avain (ensimmäiset 8 merkkiä):', apiKey.substring(0, 8));
   
-    // Muodosta Authorization-header TÄSMÄLLEEN oikein
-    const authString = `${apiKey}:`;  // avain + tyhjä salasana
+    // Muodosta Basic Auth TÄSMÄLLEEN oikein (avain + ':')
+    const authString = apiKey + ':';
     const authHeader = 'Basic ' + Buffer.from(authString).toString('base64');
   
     console.log('Proxy: Authorization-header (ensimmäiset 20 merkkiä):', authHeader.substring(0, 20));
   
-    // Poista ylimääräinen /api/mml polusta
+    // Poista /api/mml polusta
     let path = req.url;
     if (path.startsWith('/api/mml')) {
       path = path.replace('/api/mml', '');
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
         return res.status(response.status).json({
           error: 'MML API error',
           status: response.status,
-          message: response.status === 404 ? 'Kiinteistöä ei löytynyt avoimesta aineistosta' : 'MML-palvelinvirhe',
+          message: response.status === 400 ? 'Bad Request – avain tai parametri virheellinen' : 'MML-virhe',
           raw: text.substring(0, 500)
         });
       }
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       } catch (parseError) {
         console.error('JSON parse failed:', parseError, text.substring(0, 300));
         res.status(500).json({
-          error: 'MML returned invalid JSON (HTML?)',
+          error: 'MML returned invalid JSON',
           raw: text.substring(0, 500)
         });
       }
