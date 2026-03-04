@@ -156,7 +156,13 @@ function App() {
     setError(null);
 
     try {
-      const url = `/mml-api/kiinteisto-avoin/simple-features/v3/collections/PalstanSijaintitiedot/items?kiinteistotunnuksenEsitysmuoto=${encodeURIComponent(kiinteistoTunnus)}&limit=10`;
+
+      const API_BASE = import.meta.env.DEV 
+  ? '/mml-api' 
+  : 'https://tontti.vercel.app/api/mml';   // ← korvaa omalla Vercel-URL:lläsi
+
+const url = `${API_BASE}/kiinteisto-avoin/simple-features/v3/collections/PalstanSijaintitiedot/items?kiinteistotunnuksenEsitysmuoto=${encodeURIComponent(kiinteistoTunnus)}&limit=10`;
+      // const url = `/mml-api/kiinteisto-avoin/simple-features/v3/collections/PalstanSijaintitiedot/items?kiinteistotunnuksenEsitysmuoto=${encodeURIComponent(kiinteistoTunnus)}&limit=10`;
 
       console.log('Proxy-URL:', url);
 
@@ -307,7 +313,7 @@ useEffect(() => {
             radius={8}                  // koko pikseleissä (ei metreissä) – suositeltu 8–15
             pathOptions={{
               color: !insideTontti ? '#32CD32' : '#FF4500',
-fillColor: !insideTontti ? '#32CD32' : '#FF4500',
+              fillColor: !insideTontti ? '#32CD32' : '#FF4500',
               fillOpacity: 0.7,                          // läpinäkyvyys
               weight: 3,                                 // reunan paksuus
               opacity: 1
