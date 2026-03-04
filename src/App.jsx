@@ -158,10 +158,10 @@ function App() {
     try {
 
       const API_BASE = import.meta.env.DEV 
-  ? '/mml-api' 
-  : 'https://tontti.vercel.app/api/mml';   // ← korvaa omalla Vercel-URL:lläsi
-
-const url = `${API_BASE}/kiinteisto-avoin/simple-features/v3/collections/PalstanSijaintitiedot/items?kiinteistotunnuksenEsitysmuoto=${encodeURIComponent(kiinteistoTunnus)}&limit=10`;
+      ? '/mml-api' 
+      : 'https://tontti.vercel.app/api/mml';  // korvaa omalla Vercel-URL:lläsi
+    
+    const url = `${API_BASE}/kiinteisto-avoin/simple-features/v3/collections/PalstanSijaintitiedot/items?kiinteistotunnuksenEsitysmuoto=${encodeURIComponent(kiinteistoTunnus)}&limit=10`;
       // const url = `/mml-api/kiinteisto-avoin/simple-features/v3/collections/PalstanSijaintitiedot/items?kiinteistotunnuksenEsitysmuoto=${encodeURIComponent(kiinteistoTunnus)}&limit=10`;
 
       console.log('Proxy-URL:', url);
