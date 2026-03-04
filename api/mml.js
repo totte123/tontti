@@ -1,18 +1,30 @@
 export default async function handler(req, res) {
-    const apiKey = process.env.VITE_MML_API_KEY || process.env.MML_API_KEY;
+    // Varmista avain (käytä nimeä, joka on Vercelissä Environment Variables -osiossa)
+    const apiKey = process.env.VITE_MML_API_KEY;
   
     if (!apiKey) {
-      console.error('API key missing in Vercel env');
-      return res.status(500).json({ error: 'API key missing' });
+      console.error('API key missing in Vercel env vars');
+      return res.status(500).json({ error: 'API key missing in Vercel' });
     }
   
-    // Debug: tulosta avaimen alku logiin (näkyy Vercelin Logs)
+    // Debug-loki: tulosta avaimen alku (näkyy Vercelin Logs-välilehdellä)
     console.log('Proxy: käytetty avain (ensimmäiset 8 merkkiä):', apiKey.substring(0, 8));
   
-    const authHeader = `Basic ${Buffer.from(apiKey + ':').toString('base64')}`;
+    // Muodosta Authorization-header TÄSMÄLLEEN oikein
+    const authString = `${apiKey}:`;  // avain + tyhjä salasana
+    const authHeader = 'Basic ' + Buffer.from(authString).toString('base64');
+  
     console.log('Proxy: Authorization-header (ensimmäiset 20 merkkiä):', authHeader.substring(0, 20));
   
-    const targetUrl = `https://avoin-paikkatieto.maanmittauslaitos.fi${req.url}`;
+    // Poista ylimääräinen /api/mml polusta
+    let path = req.url;
+    if (path.startsWith('/api/mml')) {
+      path = path.replace('/api/mml', '');
+    }
+  
+    const targetUrl = `https://avoin-paikkatieto.maanmittauslaitos.fi${path}`;
+  
+    console.log('Proxy: target URL:', targetUrl);
   
     try {
       const response = await fetch(targetUrl, {
@@ -30,7 +42,7 @@ export default async function handler(req, res) {
         return res.status(response.status).json({
           error: 'MML API error',
           status: response.status,
-          message: response.status === 400 ? 'Bad Request – tarkista avain tai parametri' : 'MML-virhe',
+          message: response.status === 404 ? 'Kiinteistöä ei löytynyt avoimesta aineistosta' : 'MML-palvelinvirhe',
           raw: text.substring(0, 500)
         });
       }
@@ -38,9 +50,10 @@ export default async function handler(req, res) {
       try {
         const data = JSON.parse(text);
         res.status(response.status).json(data);
-      } catch {
+      } catch (parseError) {
+        console.error('JSON parse failed:', parseError, text.substring(0, 300));
         res.status(500).json({
-          error: 'MML returned invalid JSON',
+          error: 'MML returned invalid JSON (HTML?)',
           raw: text.substring(0, 500)
         });
       }
